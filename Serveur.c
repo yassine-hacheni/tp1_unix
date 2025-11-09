@@ -14,7 +14,7 @@ int main() {
     struct sigaction action_reveil, action_fin;
     
     // Bloquer les interruptions clavier (optionnel)
-    // signal(SIGINT, SIG_IGN);
+    signal(SIGINT, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
 
@@ -87,23 +87,22 @@ int main() {
         exit(1);
     }
     
-    // Handler pour SIGINT (Ctrl+C) pour terminer proprement
-    action_fin.sa_handler = fin_serveur;
-    sigemptyset(&action_fin.sa_mask);
-    action_fin.sa_flags = 0;
+    // // Handler pour SIGINT (Ctrl+C) pour terminer proprement
+    // action_fin.sa_handler = fin_serveur;
+    // sigemptyset(&action_fin.sa_mask);
+    // action_fin.sa_flags = 0;
     
-    if (sigaction(SIGINT, &action_fin, NULL) == -1) {
-        perror("[SERVEUR] Erreur installation handler SIGINT");
-        close(fd1);
-        close(fd2);
-        unlink(FIFO1);
-        unlink(FIFO2);
-        exit(1);
-    }
+    // if (sigaction(SIGINT, &action_fin, NULL) == -1) {
+    //     perror("[SERVEUR] Erreur installation handler SIGINT");
+    //     close(fd1);
+    //     close(fd2);
+    //     unlink(FIFO1);
+    //     unlink(FIFO2);
+    //     exit(1);
+    // }
     
     printf("[SERVEUR] Handlers installés avec succès\n");
     printf("[SERVEUR] En attente de requêtes...\n");
-    printf("[SERVEUR] Appuyez sur Ctrl+C pour arrêter le serveur\n\n");
     
     while(!arret_serveur) {
         /* Lecture d'une question */
