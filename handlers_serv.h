@@ -8,7 +8,7 @@
 
 
 /* Variable globale pour la synchronisation */
-volatile sig_atomic_t reveil = 0;
+extern volatile sig_atomic_t reveil;
 extern volatile sig_atomic_t arret_serveur;
 
 /* Handler pour le signal SIGUSR1

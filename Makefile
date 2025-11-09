@@ -7,19 +7,19 @@ CFLAGS = -Wall -Wextra -g
 LDFLAGS =
 
 # Fichiers sources
-SERV_SRC = serveur.c
-CLI_SRC = client.c
+SERV_SRC = Serveur.c
+CLI_SRC = Client.c
 
 # Fichiers headers
-HEADERS = serv_cli_fifo.h Handlers_Serv.h Handlers_Cli.h
+HEADERS = serv_cli_fifo.h handlers_serv.h handlers_cli.h
 
 # Fichiers objets
 SERV_OBJ = $(SERV_SRC:.c=.o)
 CLI_OBJ = $(CLI_SRC:.c=.o)
 
 # Exécutables
-SERV_EXEC = serveur
-CLI_EXEC = client
+SERV_EXEC = Serveur
+CLI_EXEC = Client
 
 # Tubes nommés
 FIFO1 = /tmp/fifo1
@@ -52,13 +52,15 @@ $(CLI_EXEC): $(CLI_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 # Compilation des fichiers objets serveur
-serveur.o: serveur.c serv_cli_fifo.h Handlers_Serv.h
-	@echo "$(GREEN)Compiling serveur.c...$(NC)"
+# Compilation des fichiers objets serveur
+Serveur.o: Serveur.c serv_cli_fifo.h handlers_serv.h
+	@echo "$(GREEN)Compiling Serveur.c...$(NC)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Compilation des fichiers objets client
-client.o: client.c serv_cli_fifo.h Handlers_Cli.h
-	@echo "$(GREEN)Compiling client.c...$(NC)"
+# Compilation des fichiers objets client
+Client.o: Client.c serv_cli_fifo.h handlers_cli.h
+	@echo "$(GREEN)Compiling Client.c...$(NC)"
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # ================================================

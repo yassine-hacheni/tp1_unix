@@ -1,6 +1,8 @@
 #include "serv_cli_fifo.h"
 #include "handlers_serv.h"
 
+/* Définition des variables globales */
+volatile sig_atomic_t reveil = 0;
 volatile sig_atomic_t arret_serveur = 0;
 
 int main() {
@@ -11,7 +13,7 @@ int main() {
     int nb_aleatoire;          // Nombre aléatoire généré
     struct sigaction action_reveil, action_fin;
     
-    // Ignorer complètement Ctrl+C
+    // Bloquer les interruptions clavier (optionnel)
     // signal(SIGINT, SIG_IGN);
     signal(SIGTSTP, SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
@@ -106,8 +108,10 @@ int main() {
     while(!arret_serveur) {
         /* Lecture d'une question */
         reveil = 0;  // Réinitialisation du flag
-        if (read(fd1, &question, sizeof(Question)) > 0) {
-            printf("okay");
+        
+        ssize_t bytes_read = read(fd1, &question, sizeof(Question));
+        
+        if (bytes_read > 0) {
             printf("[SERVEUR] Question reçue du client (PID: %d, n=%d)\n", 
                    question.pid_client, question.n);
             
@@ -116,9 +120,28 @@ int main() {
             if (question.n < 0 || question.n > NMAX) {
                 printf("[SERVEUR] Erreur: n hors limites (n=%d)\n", question.n);
                 continue;
-            }else if(question.n == 0){
-                printf("[SERVEUR] Fin du serveur\n");
-                fin_serveur(0);
+            }
+            
+            // Si n == 0, le client veut arrêter
+            if (question.n == 0) {
+                printf("[SERVEUR] Client %d demande l'arrêt\n", question.pid_client);
+                
+                // Envoyer une réponse pour débloquer le client
+                reponse.pid_client = question.pid_client;
+                reponse.resultat = 0;
+                write(fd2, &reponse, sizeof(Reponse));
+                
+                // Envoyer signal au client pour qu'il puisse lire la réponse
+                kill(question.pid_client, SIGUSR1);
+                
+                // Attendre le signal de confirmation du client
+                while (!reveil && !arret_serveur) {
+                    pause();
+                }
+                
+                printf("[SERVEUR] Client %d terminé, en attente d'autres clients...\n\n", 
+                       question.pid_client);
+                continue;
             }
             
             // Génération d'un nombre aléatoire entre 1 et n
@@ -158,6 +181,17 @@ int main() {
             }
             
             printf("[SERVEUR] Signal reçu du client, prêt pour la prochaine requête\n\n");
+        } else if (bytes_read == 0) {
+            // Le client a fermé sa connexion
+            printf("[SERVEUR] Interruption par le client (tube fermé)\n");
+            fin_serveur(0);
+            // Pas de break, on continue à attendre
+        } else {
+            // Erreur de lecture
+            if (!arret_serveur) {
+                perror("[SERVEUR] Erreur lecture");
+            }
+            break;
         }
         
         // Vérifier si arrêt demandé
