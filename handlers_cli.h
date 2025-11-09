@@ -12,7 +12,7 @@ extern volatile sig_atomic_t arret_client;
  * Ce handler est appelé lorsque le client reçoit SIGUSR1 du serveur
  * Il permet de réveiller le client pour qu'il puisse lire la réponse
  */
-void hand_reveil(int sig) {
+void hand_reveil() {
     reveil = 1;
 }
 
